@@ -8,6 +8,8 @@
 
 |-运维相关 常见运维相关操作
 
+|-常用工具 方便的开发工具推荐
+
 |-踩坑记录 实践中发生的技术事故和处理过程记录
 
 |-个人服务 服务器折腾记录
@@ -27,4 +29,3 @@
 git config user.name "{youername}"
 git config user.email "{youeremail}"
 ```
-

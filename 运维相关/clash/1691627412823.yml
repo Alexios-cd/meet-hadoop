@@ -1,0 +1,247 @@
+mixed-port: 7890
+#---------------------------------------------------#
+allow-lan: false
+mode: Rule
+log-level: silent
+external-controller: 127.0.0.1:60000
+
+# 节点配置文件统一存放在 ./profiles/proxies/ 目录中
+
+proxy-providers:
+  # 从链接导入的配置文件（支持多个Clash 订阅链接）
+  # 机场名称，可以自定义，可以中文，不建议有空格
+  airport01:
+    # 类型 可以使用file和http，file是从本地加载，http是从网络获取
+    type: http
+    # 使用http时，自动下载到以下目录（自动创建文件夹和文件，不需要提前才准备）。使用file时，需要确保以下文件存在（需要提前准备）。
+    path: ./profiles/proxies/airport01.yaml
+    # 类型使用http时从机场获取的订阅链接，如果新版clash提示出错，需要再链接后加上 &flag=clash
+    url: http://xxxxxx.xx/xxx/subscribe?token=xxxxxxxxxxxxxxxxx&flag=clash
+    # 订阅更新时间间隔，可能仅当类型为http时生效，file类型没有尝试
+    interval: 3600
+    # 可以根据节点的关键字进行过滤
+    #filter: "Hong Kong|US" # 筛选出选出含有该关键词的节点,多个过滤条件使用 |
+    # 健康检查的配置，用来检查节点延迟，测速等（就是你在界面上看到的延迟多少的数字和测速的按钮）
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+  # 可以配置多个机场，数量不限制。
+  airport02:
+    type: http
+    path: ./profiles/proxies/airport01.yaml
+    url: http://xxxxxx.xx/xxx/subscribe?token=xxxxxxxxxxxxxxxxx&flag=clash
+    interval: 3600
+    #filter: "Hong Kong|US" # 筛选出选出含有该关键词的节点,多个过滤条件使用 |
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+  # 可以配置多个机场，数量不限制，此处为了示例仅用了三个
+  airport03:
+    type: http
+    path: ./profiles/proxies/airport01.yaml
+    url: http://xxxxxx.xx/xxx/subscribe?token=xxxxxxxxxxxxxxxxx&flag=clash
+    interval: 3600
+    #filter: "Hong Kong|US" # 筛选出选出含有该关键词的节点,多个过滤条件使用 |
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+
+# 代理组，这个节点属于一个list，proxy-groups 只能有一个，但是 proxy-groups里面的数组元素可以有很多个（一个也行）
+proxy-groups:
+  # 建议只放置一个手动选择的组，看个人习惯了
+  # name 名字随便取，最好别用空格。
+  - name: 手动选择(优选)
+    # 类型 可以使用 select 手动选择，url-test 测试选择 和一个故障转移 fallback
+    type: select
+    use: # 引入proxy-provider 使用 use 关键字
+      # 引入需要使用的机场
+      - airport01
+      - airport02
+      - airport03
+    proxies:
+      # 可以引入proxy-groups下的其他元素，方便将一个自动测速选择的组当做一个节点使用。
+      - 自动选择(美国)
+      - 自动选择(邻居)
+      - 自动选择(全部)
+  # name 名字随便取，最好别用空格。
+  - name: 自动选择(邻居)
+    # 类型 可以使用 select 手动选择，url-test 测试选择 和一个故障转移 fallback
+    type: url-test
+    # 用来测速的地址，网上大佬都是这么写的，建议使用这个
+    url: http://www.gstatic.com/generate_204
+    # 测速的间隔
+    interval: 3600
+    # 过滤的配置
+    filter: "Hong Kong|Taiwan|Japan|港|日|HK|JP|KR|台|SG|United States|美|US"
+    use: # 引入proxy-provider 使用 use 关键字
+      - airport01
+      - airport02
+      - airport03
+
+  - name: 自动选择(美国)
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 3600
+    filter: "United States|美|US"
+    use: # 引入proxy-provider 使用 use 关键字
+      - airport01
+      - airport02
+      - airport03
+
+  - name: 自动选择(全部)
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 3600
+    use: # 引入proxy-provider 使用 use 关键字
+      - airport01
+      - airport02
+      - airport03
+    proxies:
+      - DIRECT
+
+# clash-rules项目提供的规则集
+rule-providers:
+  reject:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt"
+    path: ./profiles/rules/reject.yaml
+    interval: 86400
+  icloud:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt"
+    path: ./profiles/rules/icloud.yaml
+    interval: 86400
+  apple:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt"
+    path: ./profiles/rules/apple.yaml
+    interval: 86400
+  google:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt"
+    path: ./profiles/rules/google.yaml
+    interval: 86400
+  proxy:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt"
+    path: ./profiles/rules/proxy.yaml
+    interval: 86400
+  direct:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt"
+    path: ./profiles/rules/direct.yaml
+    interval: 86400
+  private:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt"
+    path: ./profiles/rules/private.yaml
+    interval: 86400
+  gfw:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt"
+    path: ./profiles/rules/gfw.yaml
+    interval: 86400
+  greatfire:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/greatfire.txt"
+    path: ./profiles/rules/greatfire.yaml
+    interval: 86400
+  tld-not-cn:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt"
+    path: ./profiles/rules/tld-not-cn.yaml
+    interval: 86400
+  telegramcidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt"
+    path: ./profiles/rules/telegramcidr.yaml
+    interval: 86400
+  cncidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt"
+    path: ./profiles/rules/cncidr.yaml
+    interval: 86400
+  lancidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt"
+    path: ./profiles/rules/lancidr.yaml
+    interval: 86400
+# 分流规则
+rules:
+  - PROCESS-NAME,v2ray,DIRECT
+  - PROCESS-NAME,xray,DIRECT
+  - PROCESS-NAME,naive,DIRECT
+  - PROCESS-NAME,trojan,DIRECT
+  - PROCESS-NAME,trojan-go,DIRECT
+  - PROCESS-NAME,ss-local,DIRECT
+  - PROCESS-NAME,privoxy,DIRECT
+  - PROCESS-NAME,leaf,DIRECT
+  - PROCESS-NAME,v2ray.exe,DIRECT
+  - PROCESS-NAME,xray.exe,DIRECT
+  - PROCESS-NAME,naive.exe,DIRECT
+  - PROCESS-NAME,trojan.exe,DIRECT
+  - PROCESS-NAME,trojan-go.exe,DIRECT
+  - PROCESS-NAME,ss-local.exe,DIRECT
+  - PROCESS-NAME,privoxy.exe,DIRECT
+  - PROCESS-NAME,leaf.exe,DIRECT
+  - PROCESS-NAME,Surge,DIRECT
+  - PROCESS-NAME,Surge 2,DIRECT
+  - PROCESS-NAME,Surge 3,DIRECT
+  - PROCESS-NAME,Surge 4,DIRECT
+  - PROCESS-NAME,Surge%202,DIRECT
+  - PROCESS-NAME,Surge%203,DIRECT
+  - PROCESS-NAME,Surge%204,DIRECT
+  - PROCESS-NAME,Thunder,DIRECT
+  - PROCESS-NAME,DownloadService,DIRECT
+  - PROCESS-NAME,qBittorrent,DIRECT
+  - PROCESS-NAME,Transmission,DIRECT
+  - PROCESS-NAME,fdm,DIRECT
+  - PROCESS-NAME,aria2c,DIRECT
+  - PROCESS-NAME,Folx,DIRECT
+  - PROCESS-NAME,NetTransport,DIRECT
+  - PROCESS-NAME,uTorrent,DIRECT
+  - PROCESS-NAME,WebTorrent,DIRECT
+  - PROCESS-NAME,aria2c.exe,DIRECT
+  - PROCESS-NAME,BitComet.exe,DIRECT
+  - PROCESS-NAME,fdm.exe,DIRECT
+  - PROCESS-NAME,NetTransport.exe,DIRECT
+  - PROCESS-NAME,qbittorrent.exe,DIRECT
+  - PROCESS-NAME,Thunder.exe,DIRECT
+  - PROCESS-NAME,ThunderVIP.exe,DIRECT
+  - PROCESS-NAME,transmission-daemon.exe,DIRECT
+  - PROCESS-NAME,transmission-qt.exe,DIRECT
+  - PROCESS-NAME,uTorrent.exe,DIRECT
+  - PROCESS-NAME,WebTorrent.exe,DIRECT
+  - DOMAIN,clash.razord.top,DIRECT
+  - DOMAIN,yacd.haishan.me,DIRECT
+  - RULE-SET,private,DIRECT
+  - RULE-SET,reject,REJECT
+  - RULE-SET,icloud,DIRECT
+  - RULE-SET,apple,DIRECT
+  - RULE-SET,google,DIRECT
+  # 需要代理的，需要指定 使用哪组代理，必须是 proxy-groups 下面有的元素，
+  # 如果希望手动选择的就使用类型为select的元素，希望自动的就选择 url_test的组，我个人喜欢手动选择
+  - RULE-SET,proxy,手动选择(优选)
+  - RULE-SET,direct,DIRECT
+  # 针对于每个规则集可以自行配置 proxy-groups 下面的元素，不必要每个都一样
+  - RULE-SET,telegramcidr,手动选择(优选)
+  - GEOIP,LAN,DIRECT
+  - GEOIP,CN,DIRECT
+  # 每匹配到的通通走代理，属于白名单模式，如果希望是黑名单可以修改为  - MATCH,DIRECT  这样没有匹配上的都不会走代理，属于黑名单模式
+  - MATCH,手动选择(优选)

@@ -11,6 +11,8 @@ clash提供了机场合并技术，相关背景和资料可以参考：[clash �
 # V2rayA 
 ## 介绍
 一个易用而强大的，跨平台的 V2Ray 客户端。你可通过本节对用户文档的内容进行快速预览。  
+![img.png](images/CAA765CA27624161BC82BF6A47BD3A5F.png)
+
 官方文档：[https://v2raya.org/docs/prologue/introduction/](https://v2raya.org/docs/prologue/introduction/)
 
 [RedHat / openSUSE / Centos 安装](https://v2raya.org/docs/prologue/installation/redhat/)

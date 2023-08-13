@@ -12,11 +12,16 @@ clash提供了机场合并技术，相关背景和资料可以参考：[clash �
 ## 介绍
 一个易用而强大的，跨平台的 V2Ray 客户端。你可通过本节对用户文档的内容进行快速预览。  
 官方文档：[https://v2raya.org/docs/prologue/introduction/](https://v2raya.org/docs/prologue/introduction/)
+
+[RedHat / openSUSE / Centos 安装](https://v2raya.org/docs/prologue/installation/redhat/)
+
 ## V2rayA在 Ubuntu 安装
 以下内容全程参考：[V2rayA/安装/DebianUbuntu安装](https://v2raya.org/docs/prologue/installation/debian/)
 ### 第一步：安装 V2Ray 内核
 v2rayA 的功能依赖于 V2Ray 内核，因此需要安装 V2Ray 内核。    
+
 建议使用V2Ray官方内核： [v2fly/fhs-install-v2ray](https://github.com/v2fly/fhs-install-v2ray)  
+
 官方简体中文参考链接：[fhs-install-v2ray/blob/master/README.zh-Hans-CN.md](https://github.com/v2fly/fhs-install-v2ray/blob/master/README.zh-Hans-CN.md)
 ```shell
 // 请注意：以下链接需要访问github才可以安装成功，请确保网络。

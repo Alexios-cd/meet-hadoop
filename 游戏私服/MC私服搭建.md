@@ -47,3 +47,54 @@ start_seconds=$(date --date="$starttime" +%s);
 end_seconds=$(date --date="$endtime" +%s);
 echo "本次备份耗时： "$((end_seconds-start_seconds))"秒"
 ```
+
+# ForgeMC私服搭建
+
+官网地址：https://files.minecraftforge.net/net/minecraftforge/forge/
+
+下载后安装
+
+```shell
+# 命令行安装
+java -jar forge-1.12.2-installer.jar nogui --installServer
+```
+
+# 推荐mod
+
+## 小地图下载
+
+Xaero's Minimap Download https://chocolateminecraft.com/minimapdownload.php
+
+## 大地图下载
+
+Xaero's World Map Download
+
+https://chocolateminecraft.com/worldmapdownload.php
+
+## 一键整理
+
+Inventory Profiles Next
+
+https://www.curseforge.com/minecraft/mc-mods/inventory-profiles-next/files
+
+libIPN
+
+https://www.curseforge.com/minecraft/mc-mods/libipn/files
+
+fabric-language-[kotlin]()
+
+https://www.curseforge.com/minecraft/mc-mods/fabric-language-kotlin
+
+## 自动钓鱼
+
+Autofish
+
+https://www.curseforge.com/minecraft/mc-mods/autofish/files
+
+AutoFish for Forge
+
+https://www.curseforge.com/minecraft/mc-mods/autofish-for-forge/files
+
+## 暮色深林
+
+https://www.curseforge.com/minecraft/mc-mods/the-twilight-forest/files

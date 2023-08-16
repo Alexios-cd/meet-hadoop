@@ -1,6 +1,7 @@
 from typing import List
 from unittest import TestCase
 
+
 # https://leetcode.cn/problems/find-the-losers-of-the-circular-game/description/
 class Solution:
     def circularGameLosers(self, n: int, k: int) -> List[int]:
@@ -12,10 +13,10 @@ class Solution:
             if data_array[index] == 1:
                 break
             data_array[index] = 1
-            index = (index+count*k)%n
+            index = (index + count * k) % n
             count += 1
         print(data_array)
-        return [i+1 for i, num in enumerate(data_array) if num != 1]
+        return [i + 1 for i, num in enumerate(data_array) if num != 1]
 
 
 class Test(TestCase):

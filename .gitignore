@@ -25,3 +25,4 @@ replay_pid*
 .idea
 *.iml
 __pycache__
+_trial_temp

@@ -47,7 +47,7 @@
 跟方案一的批处理模式不同的是：每个算子不会一次处理所有的数据，而是一批一批处理（具体看设置的读取flink的并行度和每次读取多少数据量），这样在程序启动后，所有算子同时处理数据。40亿数据一批一批流过所有的算子，效率比海量处理更高一些。
 
 ### 相关问题
-
+#### 第一个问题 流式处理有界流的checkpoint问题
 流式处理 没有 批处理 阻塞时处理的弊端，但是 利用flink写hive的话基本都是利用以下方式：
 
 ```java
@@ -103,6 +103,35 @@ StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
 
 详情参考：[Flink1.16 文件系统 重要注意事项](https://nightlies.apache.org/flink/flink-docs-release-1.16/zh/docs/connectors/datastream/filesystem/#%E9%87%8D%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9)
 
+#### 第二个问题 hive报错文件找不到问题
+程序平稳运行十个小时后又出现了第二个问题，报错一个分区的 文件找不到  
+经过分析：报错是凌晨 03:45 报错的，报错是运行程序当日2023年8月17日不找到 2023年8月16日 分区的一个文件  
+我们的程序有个定时任务，在每日的凌晨会自动前一天的合并碎文件 ，而报找不到的正是这个合并前的碎文件  
+Flink读取hive数据启动时应该读取了hive的元数据信息，将所有的文件信息加载到内存后才开始真正的读取数据。  
+Flink是在2023年8月16日启动的，启动时 hive 元信息 显示 20230816 分区下有这个 碎文件，但是当 2023年8月17日 凌晨 其他程序自动将碎文件合并导致这个碎文件丢失。  
+程序运行到时间 2023年8月17日 03:00 之后读到了 20230816 这个碎文件，导致找不到。
+
+初步判断：flink读取hive时只有在启动时进行hive元数据的读取，运行中并没有定时更新这个hive的元数据，及时找不到文件也没有去尝试更新hive元数据。
+
+解决方案1： 修改代码只读取之前的历史数据，新数据再另行处理
+```sql
+-- 因为今天 20230816 文件已经合并好了，16号的原信息是正确的。
+select * from source_a where ds<'20230817'
+```
+解决方案2：根据官方文档 启动 读取hive 元数据的定时更新策略
+![img.png](images/FDDC538AE0474A128732C0B55FCC1077.png)  
+参考文档：[Hive Read & Write](https://nightlies.apache.org/flink/flink-docs-release-1.14/zh/docs/connectors/table/hive/hive_read_write/#hive-read--write)
+
+```sql
+select * from source_a  
+/*+ 
+OPTIONS(
+	'streaming-source.enable'='true', 
+	'streaming-source.consume-start-offset'='2020-05-20'
+) 
+*/
+```
+
 # 综合总结
 
 
@@ -117,3 +146,4 @@ StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
 
 1. [FLIP-147：支持包含结束任务的 Checkpoint 操作与作业结束流程修正](https://mp.weixin.qq.com/s?__biz=MzU3Mzg4OTMyNQ==&mid=2247498786&idx=1&sn=6b3664ff103410c2f0828967980105fa&chksm=fd387260ca4ffb7698b4943ad9d6616166b6e3c9c2d75d268626b9ce746f056f2c1bda5b9f9a&scene=27)
 2. [Flink1.16 文件系统 重要注意事项](https://nightlies.apache.org/flink/flink-docs-release-1.16/zh/docs/connectors/datastream/filesystem/#%E9%87%8D%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9)
+3. [读取hive定时更新元数据 Hive Read & Write](https://nightlies.apache.org/flink/flink-docs-release-1.14/zh/docs/connectors/table/hive/hive_read_write/#hive-read--write)

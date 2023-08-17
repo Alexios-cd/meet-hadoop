@@ -118,7 +118,8 @@ Flink是在2023年8月16日启动的，启动时 hive 元信息 显示 20230816 
 -- 因为今天 20230816 文件已经合并好了，16号的原信息是正确的。
 select * from source_a where ds<'20230817'
 ```
-解决方案2：根据官方文档 启动 读取hive 元数据的定时更新策略
+解决方案2：根据官方文档 启动 读取hive 元数据的定时更新策略  
+
 ![img.png](images/FDDC538AE0474A128732C0B55FCC1077.png)  
 参考文档：[Hive Read & Write](https://nightlies.apache.org/flink/flink-docs-release-1.14/zh/docs/connectors/table/hive/hive_read_write/#hive-read--write)
 

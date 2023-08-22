@@ -25,5 +25,78 @@ eg3：6个不同的key在算子 6个并行度情况下，同一个按键分区�
 
 部分数据流如下：
 ![img.png](images/85D9CED1B2534DE497D0564D96B0B81E.png)
+验证代码如下：
+```java
+package com.xxxxxxx.study.key;
+
+import org.apache.flink.api.common.functions.RichMapFunction;
+import org.apache.flink.api.common.state.ValueState;
+import org.apache.flink.api.common.state.ValueStateDescriptor;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import java.util.HashSet;
+
+/**
+ * 描述：TODO 写明类的作用
+ * <p>
+ * 作者： 
+ * <p>
+ * 结论：
+ * 1. 经过keyBy之后进入按键分区状态，相同的key会进入相同的分区状态处理逻辑（对应的算子）。但是同一个分区状态对应的算子可能有多个不同的key会进入。
+ * 只能保障相同的key进入相同的按键分区状态，但是保障同一个按键分区状态只有一个key会进入，eg：6个不同的key在算子 2个并行度情况下，每个算子会进入3个不同的key
+ * 日期： 2023/8/22 9:39
+ */
+public class KeyStateDemo {
+    public static void main(String[] args) throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setParallelism(2);
+        String dataStr = "aThis bdocumentation ais bfor can cout-of-date cversiona dof dApache aFlink bWe arecommend byou ause bthe alatest bstable aversion";
+        DataStreamSource<String> dataStreamSource = env.fromElements(dataStr.split(" "));
+        SingleOutputStreamOperator<String> result = dataStreamSource.keyBy(el -> el.toLowerCase().charAt(0)).map(new ChartMapFunction());
+        result.print();
+        env.execute("KeyStateDemo");
+
+    }
+
+    public static class ChartMapFunction extends RichMapFunction<String, String> {
+
+        private ValueState<HashSet<String>> state;
+
+        @Override
+        public void open(Configuration parameters) throws Exception {
+            ValueStateDescriptor<HashSet<String>> valueState = new ValueStateDescriptor<>("hashSet-container", TypeInformation.of(new TypeHint<HashSet<String>>() {
+            }));
+            state = getRuntimeContext().getState(valueState);
+            System.out.println("初始化成功…………" + getRuntimeContext().getIndexOfThisSubtask() + "state对象为：" + state);
+
+        }
+
+        @Override
+        public String map(String value) throws Exception {
+            // System.out.println("中间结果:" +getRuntimeContext().getTaskNameWithSubtasks()+ value);
+            System.out.println(getRuntimeContext().getIndexOfThisSubtask()+"开始处理："+value);
+            HashSet<String> map = state.value();
+            if (map == null) {
+                map = new HashSet<>();
+            }
+            if (map.contains(value)) {
+                return "需要过滤：" + value;
+            } else {
+                map.add(value);
+                state.update(map);
+                return value;
+            }
+        }
+
+
+    }
+}
+
+```
 
 

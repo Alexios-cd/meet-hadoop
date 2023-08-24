@@ -1,4 +1,4 @@
-# 综述
+# 1. 综述
 
 Flink 是一种流式计算引擎，主要是来处理无界数据流的，数据源源不断、无穷无尽。想要更加方便高效地处理无界流，一种方式就是将无限数据切割成有限的“数据块”进行处理，这就是所谓的“窗口”（Window）。
 
@@ -6,19 +6,19 @@ Flink 是一种流式计算引擎，主要是来处理无界数据流的，数�
 
 **注意：**Flink 中窗口并不是静态准备好的，而是动态创建——当有落在这个窗口区间范围的数据达到时，才创建对应的窗口。另外，这里我们认为到达窗口结束时间时，窗口就触发计算并关闭，事实上“触发计算”和“窗口关闭”两个行为也可以分开，
 
-# 窗口的分类
+# 2. 窗口的分类
 
 在 Flink 中，窗口的应用非常灵活，可以使用各种不同类型的窗口来实现需求
 
 ![Flink窗口分类](images/Flink窗口分类.png)
 
-# 窗口函数
+# 3. 窗口函数
 
-## 增量聚合函数（**ReduceFunction / AggregateFunction**）
+## 3.1 增量聚合函数（**ReduceFunction / AggregateFunction**）
 
 窗口将数据收集起来，最基本的处理操作当然就是进行聚合。我们可以每来一个数据就在之前结果上聚合一次，这就是“增量聚合”。
 
-### 归约函数（**ReduceFunction**）
+### 3.1.1 归约函数（**ReduceFunction**）
 
 ```java
 StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -39,7 +39,7 @@ env.addSource(new WaterSensorSource())
 env.execute();
 ```
 
-### 聚合函数（**AggregateFunction**）
+### 3.1.2 聚合函数（**AggregateFunction**）
 
 ReduceFunction 可以解决大多数归约聚合的问题，但是这个接口有一个限制，就是聚合状态的类型、**输出结果的类型都必须和输入数据类型一样**。
 
@@ -103,7 +103,7 @@ env.execute();
 
 另 外 ， Flink 也 为 窗 口 的 聚 合 提 供 了 一 系 列 预 定 义 的 简 单 聚 合 方 法 ， 可 以 直 接 基 于WindowedStream 调用。主要包括 .sum()/max()/maxBy()/min()/minBy()，与 KeyedStream 的简单聚合非常相似。它们的底层，其实都是通过 AggregateFunction 来实现的。
 
-## 全窗口函数（full window functions）
+## 3.2 全窗口函数（full window functions）
 
 有些场景下，我们要做的计算必须基于全部的数据才有效，这时做增量聚合就没什么意义了；另外，输出的结果有可能要包含上下文中的一些信息（比如窗口的起始时间），这是增量聚合函数做不到的。
 
@@ -111,7 +111,7 @@ env.execute();
 
 在 Flink 中，全窗口函数也有两种：WindowFunction 和 ProcessWindowFunction
 
-### 窗口函数（WindowFunction）
+### 3.2.1 窗口函数（WindowFunction）
 
 WindowFunction 字面上就是“窗口函数”，它其实是老版本的通用窗口函数接口。我们可以基于WindowedStream 调用.apply()方法，传入一个 WindowFunction 的实现类。
 
@@ -126,7 +126,7 @@ stream
 
 不过 WindowFunction 能提供的上下文信息较少，也没有更高级的功能。事实上，它的作用**可以被ProcessWindowFunction 全覆盖**，所以之后可能会**逐渐弃用**。
 
-### 处理窗口函数（ProcessWindowFunction）
+### 3.2.2 处理窗口函数（ProcessWindowFunction）
 
 ProcessWindowFunction 是 Window API 中最底层的通用窗口函数接口。之所以说它“最底层”，是因为除了可以拿到窗口中的所有数据之外，ProcessWindowFunction 还可以获取到一个“上下文对象”（Context）。这个上下文对象非常强大，不仅能够获取窗口信息，还可以访问当前的时间和状态信息。
 
@@ -158,7 +158,7 @@ process.print();
 env.execute();
 ```
 
-## 增量聚合和全窗口函数的结合使用
+## 3.3 增量聚合和全窗口函数的结合使用
 
 在实际应用中，我们往往希望兼具这两者的优点，把它们结合在一起使用。Flink 的 Window API就给我们实现了这样的用法。我们之前在调用 WindowedStream 的.reduce()和.aggregate()方法时，只是简单地直接传入了一个ReduceFunction 或 AggregateFunction 进行增量聚合。除此之外，其实还可以传入第二个参数：一个全窗口函数，可以是 WindowFunction 或者 ProcessWindowFunction。
 
@@ -256,7 +256,7 @@ public class WindowAggregateAndProcessDemo {
 }
 ```
 
-## 其他API
+## 3.4 其他API
 
 ### 触发器（Trigger）
 
@@ -278,13 +278,13 @@ stream.keyBy(...)
 .evictor(new MyEvictor())
 ```
 
-# 时间语义
+# 4. 时间语义
 
 ![image-20230823105615394](images/image-20230823105615394.png)
 
 在 Flink 中，用来衡量事件时间进展的标记，就被称作“水位线”（Watermark）
 
-# 水位线
+# 5. 水位线
 
 在 Flink 的 DataStream API 中 ， 有一个单独用于生成水位线的方法：.assignTimestampsAndWatermarks()，它主要用来为流中的数据分配时间戳，并生成水位线来指示事件时间。具体使用如下：
 
@@ -307,9 +307,9 @@ public interface WatermarkStrategy<T> extends TimestampAssignerSupplier<T>, Wate
 }
 ```
 
-## FLink内置水位线
+## 5.1 FLink内置水位线
 
-### **有序流中内置水位线设置**
+### 5.1.1 有序流中内置水位线设置
 
 对于有序流，主要特点就是时间戳单调增长，所以永远不会出现迟到数据的问题。这是周期性生成水位线的最简单的场景，直接调用 **WatermarkStrategy.forMonotonousTimestamps()**方法就可以实现。
 
@@ -352,7 +352,7 @@ sensorDSWithWatermark.keyBy(WaterSensor::getId)
 env.execute();
 ```
 
-### 乱序流中内置水位线设置
+### 5.1.2 乱序流中内置水位线设置
 
 由于乱序流中需要等待迟到数据到齐，所以必须设置一个固定量的延迟时间。这时生成水位线的时间戳，就是当前数据流中最大的时间戳减去延迟的结果，相当于把表调慢，当前时钟会滞后于数据的最大时间戳。调用 **WatermarkStrategy. forBoundedOutOfOrderness()**方法就可以实现。这个方法需要传入一个 axOutOfOrderness 参数，表示“最大乱序程度”，它表示数据流中乱序数据时间戳的最大差值；如果我们能确定乱序程度，那么设置对应时间长度的延迟，就可以等到所有的乱序数据了。
 
@@ -395,9 +395,9 @@ sensorDSWithWatermark.keyBy(WaterSensor::getId)
 env.execute();
 ```
 
-## 自定义水位线生成
+## 5.2 自定义水位线生成
 
-### 周期性水位线生成器（Periodic Generator）
+### 5.2.1 周期性水位线生成器（Periodic Generator）
 
 周期性生成器一般是通过 onEvent()观察判断输入的事件，而在 onPeriodicEmit()里发出水位线。
 
@@ -455,11 +455,11 @@ public static class CustomBoundedOutOfOrdernessGenerator implements WatermarkGen
 env.getConfig().setAutoWatermarkInterval(400L);
 ```
 
-### 断点式水位线生成器（Punctuated Generator）
+### 5.2.2 断点式水位线生成器（Punctuated Generator）
 
 断点式生成器会不停地检测 onEvent()中的事件，当发现带有水位线信息的事件时，就立即发出水位线。我们把发射水位线的逻辑写在 onEvent 方法当中即可。
 
-### 在数据源中发送水位线
+### 5.2.3 在数据源中发送水位线
 
 我们也可以在自定义的数据源中抽取事件时间，然后发送水位线。这里要注意的是，在自定义数
 
@@ -473,7 +473,7 @@ env.getConfig().setAutoWatermarkInterval(400L);
 env.fromSource(kafkaSource,WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(3)),"kafkasource")
 ```
 
-### 水位线的传递
+### 5.2.4 水位线的传递
 
 在流处理中，上游任务处理完水位线、时钟改变之后，要把当前的水位线再次发出，广播给所有的下游子任务。而当一个任务接收到多个上游并行任务传递来的水位线时，应该**以最小的那个作为当前任务的事件时钟**。
 
@@ -486,9 +486,9 @@ WatermarkStrategy.<Integer>forMonotonousTimestamps()
 .withIdleness(Duration.ofSeconds(5)) 
 ```
 
-## 迟到数据处理
+## 5.3 迟到数据处理
 
-### 推迟水印推进
+### 5.3.1 推迟水印推进
 
 在水印产生时，设置一个乱序容忍度，推迟系统时间的推进，保证窗口计算被延迟执行，为乱序的数据争取更多的时间进入窗口。
 
@@ -496,7 +496,7 @@ WatermarkStrategy.<Integer>forMonotonousTimestamps()
 WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(10));
 ```
 
-### 设置窗口延迟关闭
+### 5.3.2 设置窗口延迟关闭
 
 Flink 的窗口，也允许迟到数据。当触发了窗口计算后，会先计算当前的结果，但是此时并不会关闭窗口。
 
@@ -509,7 +509,7 @@ Flink 的窗口，也允许迟到数据。当触发了窗口计算后，会先�
 
 注意: 允许迟到只能运用在 event time 上
 
-### 使用侧流接收迟到的数据
+### 5.3.3 使用侧流接收迟到的数据
 
 ```java
 .windowAll(TumblingEventTimeWindows.of(Time.seconds(5)))
@@ -547,9 +547,9 @@ process.getSideOutput(lateTag).printToErr("关窗后的迟到数据");
 env.execute();
 ```
 
-## 基于时间的合流——双流联结（Join）
+## 5.4 基于时间的合流——双流联结（Join）
 
-### 窗口联结（Window Join）
+### 5.4.1 窗口联结（Window Join）
 
 窗口联结在代码中的实现，首先需要调用 DataStream 的.join()方法来合并两条流，得到一个JoinedStreams；接着通过.where()和.equalTo()方法指定两条流中联结的 key；然后通过.window()开窗口，并调用.apply()传入联结窗口函数进行处理计算。通用调用形式如下：
 
@@ -628,7 +628,7 @@ public class WindowJoinDemo {
 }
 ```
 
-### 间隔联结（Interval Join）
+### 5.4.2 间隔联结（Interval Join）
 
 ![image-20230823115332090](images/image-20230823115332090.png)
 

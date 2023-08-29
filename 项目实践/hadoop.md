@@ -43,5 +43,44 @@ hdfs://quickstart.cloudera:8020  54.5 G  832.6 M     31.5 G    1%
    1. 如果确实要根据文件夹大小排序可以使用 hdfs dfs -du / | sort -n -r 忽略-h 指令（这样显示的是bytes）
 1. 关于第二列的数字跟第一列数字不一致，有说法为第二列为备份大小，有说法为限额大小，依据实际情况来看，偏向于备份大小。
 
+---
+删除hdfs之前日期之前创建的文件
+```shell
+#!/bin/bash
+ 
+# 定义要操作的目录路径变量
+target_directory="/user/hdfs/.flink"
+ 
+# 定义删除前的天数阈值
+days_threshold=7
+ 
+# 获取当前时间的时间戳
+current_time=$(date +%s)
+ 
+# 计算阈值天数前的时间戳
+threshold_time=$((current_time - days_threshold * 24 * 3600))
+ 
+# 进行kerberos认证
+# kinit -kt /etc/kerberos/hdfs.keytab hdfs@HADOOP.COM
+ 
+# 列出指定目录下的所有文件夹
+hdfs dfs -ls "$target_directory" | awk '{print $6, $7, $8}' | while read -r modification_time_day modification_time_time folder_path; do
+    # 构建完整的修改时间
+    modification_time="${modification_time_day} ${modification_time_time}"
+     
+    # 转换修改时间为时间戳
+    modification_timestamp=$(date -d "$modification_time" +%s)
+     
+    # 判断文件夹是否满足删除条件
+    if [[ "$folder_path" != "/" && "$modification_timestamp" -lt "$threshold_time" ]]; then
+        days_diff=$(( (current_time - modification_timestamp) / 86400 ))
+        echo "文件夹创建时间为 $modification_time， 于 $days_diff 天以前创建: $folder_path 将会被删除"
+        # 删除符合条件的文件夹
+        hdfs dfs -rm -r "$folder_path"
+    fi
+done
+echo "删除完成！！！！！"
+```
+
 # 参考文档：
 1. [hadoop官方命令说明](https://hadoop.apache.org/docs/r3.1.1/hadoop-project-dist/hadoop-common/FileSystemShell.html#du)

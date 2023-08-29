@@ -1,4 +1,5 @@
 # 获取hdfs目录大小
+
 ```shell
 # 获取每个目录的大小
 hadoop fs -du -h /
@@ -20,6 +21,8 @@ du -h -d 1 /
 7.4 T    22.3 T   /user
 ```
 ---
+# 获取当前目录总容量
+
 ```shell
 # 获取当前目录总容量
 #-s 统计父目录
@@ -44,7 +47,37 @@ hdfs://quickstart.cloudera:8020  54.5 G  832.6 M     31.5 G    1%
 1. 关于第二列的数字跟第一列数字不一致，有说法为第二列为备份大小，有说法为限额大小，依据实际情况来看，偏向于备份大小。
 
 ---
+# 获取当前目录的文件数量
+
+```shell
+hadoop fs -count -q -v /
+
+QUOTA       REM_QUOTA     SPACE_QUOTA REM_SPACE_QUOTA    DIR_COUNT   FILE_COUNT       CONTENT_SIZE PATHNAME
+none            inf            none             inf         145         1404          9088242399 /
+
+-count: 指定要执行文件和目录计数操作。
+-q 或 --quiet: 在输出结果中，只显示计数信息，不显示其他冗余信息。
+-h 或 --human-readable: 以可读的格式显示文件和目录的大小。例如，使用 B、KB、MB 等单位显示文件大小。
+-v 或 --verbose: 显示详细的计数信息，包括每个子目录的计数结果。
+/path/to/your/directory: 这是您想要统计文件数量的目标文件夹的路径。
+```
+
+```
+hadoop fs -count -q -v -h /
+QUOTA       REM_QUOTA     SPACE_QUOTA REM_SPACE_QUOTA    DIR_COUNT   FILE_COUNT       CONTENT_SIZE PATHNAME
+none             inf            none             inf        7.2 K       24.4 M            547.4 G /
+
+"1K" 可以表示 1,000 个文件
+"1M" 可以表示 1,000,000 个文件
+"1G" 可以表示 1,000,000,000 个文件
+```
+
+
+
+# 删除历史日期文件
+
 删除hdfs之前日期之前创建的文件
+
 ```shell
 #!/bin/bash
  
